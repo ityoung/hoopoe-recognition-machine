@@ -1,7 +1,10 @@
+import cv2
+import numpy as np
 import torchvision as tv
 import torchvision.transforms as transforms
 from torchvision.transforms import ToPILImage
 import torch as t
+from torch.tensor import Tensor
 
 show = ToPILImage()  # 可以把Tensor转成Image，方便可视化
 # 第一次运行程序torchvision会自动下载CIFAR-10数据集，
@@ -16,7 +19,7 @@ transform = transforms.Compose([
 
 # # 训练集
 # trainset = tv.datasets.CIFAR10(
-#                     root='D:\\Code\\Pycharm\\dyson',
+#                     root='.',
 #                     train=True,
 #                     download=True,
 #                     transform=transform)
@@ -29,7 +32,7 @@ transform = transforms.Compose([
 
 # 测试集
 testset = tv.datasets.CIFAR10(
-                    'D:\\Code\\Pycharm\\dyson',
+                    '.',
                     train=False,
                     download=True,
                     transform=transform)
@@ -67,7 +70,19 @@ class Net(nn.Module):
 #
 # net = Net()
 # print(net)
+transform3 = transforms.Compose([
+    transforms.ToTensor(),  # 转为Tensor
+    transforms.Scale((32, 32)),
+    # transforms.CenterCrop((32, 32)),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),  # 归一化
+])
 
+def read_image(image_path):
+    img = transform3(cv2.cvtColor(cv2.imread(image_path), cv2.COLOR_RGB2BGR))
+    # img = transform(cv2.imread(image_path))
+    # img = np.transpose(img, (1, 2, 0))
+    img = np.reshape(img, (3, 32, 32))
+    return Tensor(img).unsqueeze(0)
 
 if __name__ == '__main__':
     # from torch import optim
@@ -118,11 +133,18 @@ if __name__ == '__main__':
 
     # 由于测试的时候不需要求导，可以暂时关闭autograd，提高速度，节约内存
     with t.no_grad():
-        for data in testloader:
-            images, labels = data
-            outputs = net(images)
-            _, predicted = t.max(outputs, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum()
+        # 单张图片识别
+        images = read_image("car2.jpeg")
+        outputs = net(images)
+        _, predicted = t.max(outputs, 1)
+        print(predicted)
 
-    print('10000张测试集中的准确率为: %d %%' % (100 * correct // total))
+    # 计算准确率
+    #     for data in testloader:
+    #         images, labels = data
+    #         outputs = net(images)
+    #         _, predicted = t.max(outputs, 1)
+    #         total += labels.size(0)
+    #         correct += (predicted == labels).sum()
+    #
+    # print('10000张测试集中的准确率为: %d %%' % (100 * correct // total))

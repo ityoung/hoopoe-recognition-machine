@@ -8,5 +8,5 @@
 2. 安装Pytorch;
    > 前提：配置好Conda虚拟环境
    ```shell script
-   conda install pytorch torchvision cudatoolkit
+   conda install pytorch torchvision cudatoolkit matplotlib opencv-python
    ```
